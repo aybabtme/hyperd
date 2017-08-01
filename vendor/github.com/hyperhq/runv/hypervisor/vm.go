@@ -203,9 +203,9 @@ func (vm *Vm) WaitProcess(isContainer bool, ids []string, timeout int) <-chan *a
 			}
 			select {
 			case ps.Ack <- true:
-				vm.ctx.Log(TRACE, "got shut down msg, acked here")
+				vm.ctx.Log(DEBUG, "got shut down msg, acked here")
 			default:
-				vm.ctx.Log(TRACE, "got shut down msg, acked somewhere")
+				vm.ctx.Log(DEBUG, "got shut down msg, acked somewhere")
 			}
 			delete(waiting, ps.Id)
 			if len(waiting) == 0 {
@@ -313,7 +313,7 @@ func (vm *Vm) AddNic(info *api.InterfaceDescription) error {
 	}
 
 	if vm.ctx.LogLevel(TRACE) {
-		vm.Log(TRACE, "finial vmSpec.Interface is %#v", vm.ctx.networks.getInterface(info.Id))
+		vm.Log(DEBUG, "finial vmSpec.Interface is %#v", vm.ctx.networks.getInterface(info.Id))
 	}
 	return vm.ctx.updateInterface(info.Id)
 }
@@ -414,7 +414,7 @@ func (vm *Vm) HyperstartExecSync(cmd []string, stdin []byte) (stdout, stderr []b
 		return nil, nil, err
 	}
 
-	vm.Log(TRACE, "hyperstart-exec %q terminated at %v with code %d", execId, r.FinishedAt, r.Code)
+	vm.Log(DEBUG, "hyperstart-exec %q terminated at %v with code %d", execId, r.FinishedAt, r.Code)
 
 	if r.Code != 0 {
 		return stdoutBuf.Bytes(), stderrBuf.Bytes(), fmt.Errorf("exit with error code:%d", r.Code)
@@ -459,7 +459,7 @@ func (vm *Vm) HyperstartExec(cmd string, tty *TtyIO) (int, error) {
 		return -1, err
 	}
 
-	vm.Log(TRACE, "hyperstart-exec %q terminated at %v with code %d", execID, r.FinishedAt, r.Code)
+	vm.Log(DEBUG, "hyperstart-exec %q terminated at %v with code %d", execID, r.FinishedAt, r.Code)
 	return r.Code, nil
 }
 
@@ -598,7 +598,7 @@ func (vm *Vm) StartContainer(id string) error {
 		return fmt.Errorf("Create new container failed: %v", err)
 	}
 
-	vm.ctx.Log(TRACE, "container %s start: done.", id)
+	vm.ctx.Log(DEBUG, "container %s start: done.", id)
 	return nil
 }
 
@@ -676,7 +676,7 @@ func (vm *Vm) Pause(pause bool) error {
 			return err
 		}
 
-		vm.Log(TRACE, "sandbox state turn to %s now", command)
+		vm.Log(DEBUG, "sandbox state turn to %s now", command)
 		ctx.PauseState = pauseState // change the state.
 	}
 
@@ -755,14 +755,14 @@ func GetVm(vmId string, b *BootConfig, waitStarted bool) (*Vm, error) {
 	}
 
 	if waitStarted {
-		vm.Log(TRACE, "waiting for vm to start")
+		vm.Log(DEBUG, "waiting for vm to start")
 		if _, err := vm.ctx.hyperstart.APIVersion(); err != nil {
 			vm.Log(ERROR, "VM start failed: %v", err)
 			return nil, fmt.Errorf("VM start failed: %v", err)
 		}
-		vm.Log(TRACE, "VM started successfully")
+		vm.Log(DEBUG, "VM started successfully")
 	}
 
-	vm.Log(TRACE, "GetVm succeeded")
+	vm.Log(DEBUG, "GetVm succeeded")
 	return vm, nil
 }

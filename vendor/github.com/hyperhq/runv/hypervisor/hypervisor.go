@@ -20,7 +20,7 @@ func (ctx *VmContext) loop() {
 			ctx.Log(DEBUG, "got nil event.")
 			continue
 		}
-		ctx.Log(TRACE, "main event loop got message %d(%s)", ev.Event(), EventString(ev.Event()))
+		ctx.Log(DEBUG, "main event loop got message %d(%s)", ev.Event(), EventString(ev.Event()))
 		ctx.handler(ctx, ev)
 	}
 
@@ -41,7 +41,7 @@ func (ctx *VmContext) watchHyperstart() {
 	ctx.Log(DEBUG, "watch hyperstart")
 loop:
 	for {
-		ctx.Log(TRACE, "issue VERSION request for keep-alive test")
+		ctx.Log(DEBUG, "issue VERSION request for keep-alive test")
 		_, err := ctx.hyperstart.APIVersion()
 		if err != nil {
 			ctx.Log(WARNING, "keep-alive test end with error: %v", err)
@@ -69,7 +69,7 @@ func (ctx *VmContext) Launch() {
 
 	//launch routines
 	if ctx.Boot.BootFromTemplate {
-		ctx.Log(TRACE, "boot from template")
+		ctx.Log(DEBUG, "boot from template")
 		ctx.PauseState = PauseStatePaused
 		ctx.hyperstart = libhyperstart.NewJsonBasedHyperstart(ctx.Id, ctx.ctlSockAddr(), ctx.ttySockAddr(), 1, false, true)
 	} else {

@@ -8,7 +8,6 @@ import (
 
 	"github.com/hyperhq/hypercontainer-utils/hlog"
 	"github.com/hyperhq/hyperd/storage"
-	dm "github.com/hyperhq/hyperd/storage/devicemapper"
 	apitypes "github.com/hyperhq/hyperd/types"
 	"github.com/hyperhq/hyperd/utils"
 	runv "github.com/hyperhq/runv/api"
@@ -57,11 +56,7 @@ func ProbeExistingVolume(v *apitypes.UserVolume, sharedDir string) (*runv.Volume
 		}
 		hlog.Log(DEBUG, "dir %s is bound to %s", v.Source, vol.Source)
 	} else if v.Format == "raw" && v.Fstype == "" {
-		vol.Fstype, err = dm.ProbeFsType(v.Source)
-		if err != nil {
-			vol.Fstype = storage.DEFAULT_VOL_FS
-			err = nil
-		}
+		vol.Fstype = storage.DEFAULT_VOL_FS
 	}
 
 	return vol, nil
@@ -74,5 +69,5 @@ func UmountExistingVolume(fstype, target, sharedDir string) error {
 	if !path.IsAbs(target) {
 		return nil
 	}
-	return dm.UnmapVolume(target)
+	return fmt.Errorf("can't handle non 'dir' type of fs: %q", fstype)
 }

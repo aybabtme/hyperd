@@ -53,9 +53,9 @@ func enableVmLogd(ctx *VmContext) error {
 
 func watchVmConsole(ctx *VmContext) {
 	if err := enableVmLogd(ctx); err != nil {
-		ctx.Log(TRACE, "fail to enable vmLogd: %v", err)
+		ctx.Log(DEBUG, "fail to enable vmLogd: %v", err)
 	} else {
-		ctx.Log(TRACE, "log vm console through vmlogd")
+		ctx.Log(DEBUG, "log vm console through vmlogd")
 		return
 	}
 
@@ -65,14 +65,14 @@ func watchVmConsole(ctx *VmContext) {
 		return
 	}
 
-	ctx.Log(TRACE, "connected to %s", ctx.ConsoleSockName)
+	ctx.Log(DEBUG, "connected to %s", ctx.ConsoleSockName)
 
 	tc, err := telnet.NewConn(conn)
 	if err != nil {
 		ctx.Log(ERROR, "fail to init telnet connection to %s: %v", ctx.ConsoleSockName, err)
 		return
 	}
-	ctx.Log(TRACE, "connected %s as telnet mode.", ctx.ConsoleSockName)
+	ctx.Log(DEBUG, "connected %s as telnet mode.", ctx.ConsoleSockName)
 
 	cout := make(chan string, 128)
 	go TtyLiner(tc, cout)
@@ -83,19 +83,19 @@ func watchVmConsole(ctx *VmContext) {
 		if ok {
 			ctx.Log(EXTRA, "[CNL] %s", line)
 		} else {
-			ctx.Log(TRACE, "console output end")
+			ctx.Log(DEBUG, "console output end")
 			return
 		}
 	}
 	if !ctx.LogLevel(EXTRA) {
-		ctx.Log(TRACE, "[CNL] omit the first %d line of console logs", ignoreLines)
+		ctx.Log(DEBUG, "[CNL] omit the first %d line of console logs", ignoreLines)
 	}
 	for {
 		line, ok := <-cout
 		if ok {
-			ctx.Log(TRACE, "[CNL] %s", line)
+			ctx.Log(DEBUG, "[CNL] %s", line)
 		} else {
-			ctx.Log(TRACE, "console output end")
+			ctx.Log(DEBUG, "console output end")
 			return
 		}
 	}
