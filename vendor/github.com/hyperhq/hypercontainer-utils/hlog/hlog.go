@@ -62,8 +62,25 @@ func getLogger(level LogLevel) logFunc {
 		return glog.ErrorDepth
 	case WARNING:
 		return glog.WarningDepth
-	default:
+	case INFO:
 		return glog.InfoDepth
+	case DEBUG:
+		if glog.V(1) {
+			return glog.InfoDepth
+		}
+		return nil
+	case TRACE:
+		if glog.V(3) {
+			return glog.InfoDepth
+		}
+		return nil
+	case EXTRA:
+		if glog.V(5) {
+			return glog.InfoDepth
+		}
+		return nil
+	default:
+		return nil
 	}
 }
 

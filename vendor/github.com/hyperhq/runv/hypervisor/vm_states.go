@@ -31,7 +31,6 @@ func (ctx *VmContext) newContainer(id string) error {
 	ctx.lock.Lock()
 	defer ctx.lock.Unlock()
 
-	ctx.Log(DEBUG, "creating a new container with id %v", id)
 	if ctx.current != StateRunning {
 		ctx.Log(DEBUG, "start container %s during %v", id, ctx.current)
 		return NewNotReadyError(ctx.Id)
@@ -39,13 +38,13 @@ func (ctx *VmContext) newContainer(id string) error {
 
 	c, ok := ctx.containers[id]
 	if ok {
-		ctx.Log(DEBUG, "start sending INIT_NEWCONTAINER")
+		ctx.Log(TRACE, "start sending INIT_NEWCONTAINER")
 		var err error
 		c.stdinPipe, c.stdoutPipe, c.stderrPipe, err = ctx.hyperstart.NewContainer(c.VmSpec())
 		if err == nil && c.tty != nil {
 			go streamCopy(c.tty, c.stdinPipe, c.stdoutPipe, c.stderrPipe)
 		}
-		ctx.Log(DEBUG, "sent INIT_NEWCONTAINER")
+		ctx.Log(TRACE, "sent INIT_NEWCONTAINER")
 		go func() {
 			status := ctx.hyperstart.WaitProcess(id, "init")
 			ctx.reportProcessFinished(types.E_CONTAINER_FINISHED, &types.ProcessFinished{
@@ -53,7 +52,7 @@ func (ctx *VmContext) newContainer(id string) error {
 			})
 			ctx.lock.Lock()
 			if c, ok := ctx.containers[id]; ok {
-				c.Log(DEBUG, "container finished, unset iostream pipes")
+				c.Log(TRACE, "container finished, unset iostream pipes")
 				c.stdinPipe = nil
 				c.stdoutPipe = nil
 				c.stderrPipe = nil
@@ -96,7 +95,7 @@ func (ctx *VmContext) restoreContainer(id string) (alive bool, err error) {
 		})
 		ctx.lock.Lock()
 		if c, ok := ctx.containers[id]; ok {
-			c.Log(DEBUG, "container finished, unset iostream pipes")
+			c.Log(TRACE, "container finished, unset iostream pipes")
 			c.stdinPipe = nil
 			c.stdoutPipe = nil
 			c.stderrPipe = nil
@@ -151,7 +150,7 @@ type TtyIO struct {
 }
 
 func (tty *TtyIO) Close() {
-	hlog.Log(DEBUG, "Close tty")
+	hlog.Log(TRACE, "Close tty")
 
 	if tty.Stdin != nil {
 		tty.Stdin.Close()
@@ -268,19 +267,19 @@ func unexpectedEventHandler(ctx *VmContext, ev VmEvent, state string) {
 func stateRunning(ctx *VmContext, ev VmEvent) {
 	switch ev.Event() {
 	case COMMAND_SHUTDOWN:
-		ctx.Log(DEBUG, "got shutdown command, shutting down")
+		ctx.Log(TRACE, "got shutdown command, shutting down")
 		go ctx.shutdownVM()
 		ctx.Become(stateTerminating, StateTerminating)
 	case COMMAND_RELEASE:
-		ctx.Log(DEBUG, "pod is running, got release command, let VM fly")
+		ctx.Log(TRACE, "pod is running, got release command, let VM fly")
 		ctx.Become(nil, StateNone)
 		ctx.reportSuccess("", nil)
 	case EVENT_VM_EXIT, ERROR_VM_START_FAILED:
-		ctx.Log(DEBUG, "VM has exit, or not started at all (%d)", ev.Event())
+		ctx.Log(TRACE, "VM has exit, or not started at all (%d)", ev.Event())
 		ctx.reportVmShutdown()
 		ctx.Close()
 	case EVENT_VM_KILL:
-		ctx.Log(DEBUG, "Got VM force killed message, go to cleaning up")
+		ctx.Log(TRACE, "Got VM force killed message, go to cleaning up")
 		ctx.reportVmShutdown()
 		ctx.Close()
 	case EVENT_VM_TIMEOUT: // REFACTOR: we do not set timeout for prepare devices after the refactor, then we do not need wait this event any more
@@ -291,7 +290,7 @@ func stateRunning(ctx *VmContext, ev VmEvent) {
 		ctx.poweroffVM(true, "connection to vm broken")
 		ctx.Close()
 	case ERROR_INTERRUPTED:
-		ctx.Log(DEBUG, "Connection interrupted, quit...")
+		ctx.Log(TRACE, "Connection interrupted, quit...")
 		ctx.poweroffVM(true, "connection to vm broken")
 		ctx.Close()
 	default:
@@ -302,22 +301,22 @@ func stateRunning(ctx *VmContext, ev VmEvent) {
 func stateTerminating(ctx *VmContext, ev VmEvent) {
 	switch ev.Event() {
 	case EVENT_VM_EXIT:
-		ctx.Log(DEBUG, "Got VM shutdown event while terminating, go to cleaning up")
+		ctx.Log(TRACE, "Got VM shutdown event while terminating, go to cleaning up")
 		ctx.reportVmShutdown()
 		ctx.Close()
 	case EVENT_VM_KILL:
-		ctx.Log(DEBUG, "Got VM force killed message, go to cleaning up")
+		ctx.Log(TRACE, "Got VM force killed message, go to cleaning up")
 		ctx.reportVmShutdown()
 		ctx.Close()
 	case COMMAND_RELEASE:
-		ctx.Log(DEBUG, "vm terminating, got release")
+		ctx.Log(TRACE, "vm terminating, got release")
 	case EVENT_VM_TIMEOUT:
 		ctx.Log(WARNING, "VM did not exit in time, try to stop it")
 		ctx.poweroffVM(true, "vm terminating timeout")
 		ctx.Close()
 	case ERROR_INTERRUPTED:
 		interruptEv := ev.(*Interrupted)
-		ctx.Log(DEBUG, "Connection interrupted while terminating: %s", interruptEv.Reason)
+		ctx.Log(TRACE, "Connection interrupted while terminating: %s", interruptEv.Reason)
 	default:
 		unexpectedEventHandler(ctx, ev, "terminating")
 	}

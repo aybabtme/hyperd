@@ -9,7 +9,7 @@ const (
 	WARNING = hlog.WARNING
 	INFO    = hlog.INFO
 	DEBUG   = hlog.DEBUG
-	TRACE   = hlog.DEBUG
+	TRACE   = hlog.TRACE
 	EXTRA   = hlog.EXTRA
 )
 
