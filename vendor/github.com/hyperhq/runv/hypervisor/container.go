@@ -55,7 +55,7 @@ func (cc *ContainerContext) VmSpec() *hyperstartapi.Container {
 		rtContainer.Addr = cc.root.ScsiAddr
 	}
 
-	cc.Log(DEBUG, "generate vm container %#v", rtContainer)
+	cc.Log(TRACE, "generate vm container %#v", rtContainer)
 
 	return rtContainer
 }
@@ -98,12 +98,12 @@ func (cc *ContainerContext) add(wgDisk *sync.WaitGroup, result chan api.Result) 
 		return
 	}
 
-	if cc.sandbox.LogLevel(DEBUG) {
+	if cc.sandbox.LogLevel(TRACE) {
 		vmspec := cc.VmSpec()
-		cc.Log(DEBUG, "resource ready for container: %#v", vmspec)
+		cc.Log(TRACE, "resource ready for container: %#v", vmspec)
 	}
 
-	cc.Log(DEBUG, "all images and volume resources have been added to sandbox")
+	cc.Log(TRACE, "all images and volume resources have been added to sandbox")
 	result <- api.NewResultBase(cc.Id, true, "")
 }
 
